@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using NUnit.Framework;
 
 namespace Clones;
@@ -144,13 +145,35 @@ public class CloneVersionSystem<TValue> : ICloneVersionSystem where TValue : ICo
 
 	private Tuple<string, int, TValue> ParseInput(string query)
 	{
-		var splitInput = query.Split(' ',3);
+		var splitInput = Split(query, ' ');
 		var command = splitInput[0];
 		var cloneNumber = int.Parse(splitInput[1]);
 		var program = default(TValue);
 		if (splitInput.Length == 3)
 			program = (TValue)Convert.ChangeType(splitInput[2].Replace("\"", ""), typeof(TValue));
 		return Tuple.Create(command, cloneNumber, program);
+	}
+
+	private string[] Split(string input, char separator)
+	{
+		var result = new List<string>();
+		var stringBuilder = new StringBuilder();
+		var markIsOpen = false;
+		foreach (var t in input)
+		{
+			if (t == '"')
+				markIsOpen = !markIsOpen;
+			else if (t == separator && !markIsOpen)
+			{
+				result.Add(stringBuilder.ToString());
+				stringBuilder.Clear();
+			}
+			else
+				stringBuilder.Append(t);
+		}
+		if (stringBuilder.Length != 0)
+			result.Add(stringBuilder.ToString());
+		return result.ToArray();
 	}
 
 	private static void Learn(int cloneNumber, TValue program, IReadOnlyList<Clone<TValue>> clones) =>
